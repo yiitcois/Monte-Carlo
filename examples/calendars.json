@@ -1,5 +1,8 @@
-{
-  "working_days": [0, 1, 2, 3, 4],
-  "daily_capacity": 1.0,
-  "holidays": [20, 45]
-}
+[
+  {
+    "calendar_id": "TR_Factory_ShiftA",
+    "workdays": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    "work_hours_per_day": 8,
+    "holidays": []
+  }
+]

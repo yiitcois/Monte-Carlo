@@ -1,0 +1,587 @@
+{
+  "iterations": 5000,
+  "statistics": {
+    "mean": 52.53557465020788,
+    "median": 52.60798621958188,
+    "stdev": 3.9181399694024748,
+    "percentiles": {
+      "0.5": 52.60798621958188,
+      "0.8": 55.926475578286585,
+      "0.9": 57.639184631659724
+    }
+  },
+  "critical_path": [
+    "P0",
+    "P1",
+    "D1",
+    "D2",
+    "B1",
+    "B2",
+    "T1",
+    "T2",
+    "L1",
+    "L2"
+  ],
+  "histogram": [
+    {
+      "bin_start": 40.25071912375528,
+      "bin_end": 41.47529103507529,
+      "count": 5,
+      "probability": 0.001
+    },
+    {
+      "bin_start": 41.47529103507529,
+      "bin_end": 42.69986294639529,
+      "count": 21,
+      "probability": 0.0042
+    },
+    {
+      "bin_start": 42.69986294639529,
+      "bin_end": 43.9244348577153,
+      "count": 34,
+      "probability": 0.0068
+    },
+    {
+      "bin_start": 43.9244348577153,
+      "bin_end": 45.149006769035296,
+      "count": 106,
+      "probability": 0.0212
+    },
+    {
+      "bin_start": 45.149006769035296,
+      "bin_end": 46.3735786803553,
+      "count": 149,
+      "probability": 0.0298
+    },
+    {
+      "bin_start": 46.3735786803553,
+      "bin_end": 47.59815059167531,
+      "count": 244,
+      "probability": 0.0488
+    },
+    {
+      "bin_start": 47.59815059167531,
+      "bin_end": 48.82272250299531,
+      "count": 327,
+      "probability": 0.0654
+    },
+    {
+      "bin_start": 48.82272250299531,
+      "bin_end": 50.04729441431532,
+      "count": 471,
+      "probability": 0.0942
+    },
+    {
+      "bin_start": 50.04729441431532,
+      "bin_end": 51.271866325635315,
+      "count": 473,
+      "probability": 0.0946
+    },
+    {
+      "bin_start": 51.271866325635315,
+      "bin_end": 52.49643823695533,
+      "count": 607,
+      "probability": 0.1214
+    },
+    {
+      "bin_start": 52.49643823695533,
+      "bin_end": 53.721010148275326,
+      "count": 621,
+      "probability": 0.1242
+    },
+    {
+      "bin_start": 53.721010148275326,
+      "bin_end": 54.94558205959533,
+      "count": 574,
+      "probability": 0.1148
+    },
+    {
+      "bin_start": 54.94558205959533,
+      "bin_end": 56.17015397091534,
+      "count": 451,
+      "probability": 0.0902
+    },
+    {
+      "bin_start": 56.17015397091534,
+      "bin_end": 57.39472588223534,
+      "count": 365,
+      "probability": 0.073
+    },
+    {
+      "bin_start": 57.39472588223534,
+      "bin_end": 58.61929779355535,
+      "count": 266,
+      "probability": 0.0532
+    },
+    {
+      "bin_start": 58.61929779355535,
+      "bin_end": 59.843869704875345,
+      "count": 167,
+      "probability": 0.0334
+    },
+    {
+      "bin_start": 59.843869704875345,
+      "bin_end": 61.06844161619536,
+      "count": 55,
+      "probability": 0.011
+    },
+    {
+      "bin_start": 61.06844161619536,
+      "bin_end": 62.293013527515356,
+      "count": 47,
+      "probability": 0.0094
+    },
+    {
+      "bin_start": 62.293013527515356,
+      "bin_end": 63.51758543883536,
+      "count": 11,
+      "probability": 0.0022
+    },
+    {
+      "bin_start": 63.51758543883536,
+      "bin_end": 64.74215735015537,
+      "count": 6,
+      "probability": 0.0012
+    }
+  ],
+  "s_curve": [
+    {
+      "percentile": 0.0,
+      "duration": 40.25071912375528
+    },
+    {
+      "percentile": 0.01,
+      "duration": 43.6187846910757
+    },
+    {
+      "percentile": 0.02,
+      "duration": 44.56436160000378
+    },
+    {
+      "percentile": 0.03,
+      "duration": 45.019308497095565
+    },
+    {
+      "percentile": 0.04,
+      "duration": 45.414574097684
+    },
+    {
+      "percentile": 0.05,
+      "duration": 45.80015414294907
+    },
+    {
+      "percentile": 0.06,
+      "duration": 46.250194605781296
+    },
+    {
+      "percentile": 0.07,
+      "duration": 46.594988465933376
+    },
+    {
+      "percentile": 0.08,
+      "duration": 46.839000092673864
+    },
+    {
+      "percentile": 0.09,
+      "duration": 47.092581723109305
+    },
+    {
+      "percentile": 0.1,
+      "duration": 47.36038986016179
+    },
+    {
+      "percentile": 0.11,
+      "duration": 47.569897477397326
+    },
+    {
+      "percentile": 0.12,
+      "duration": 47.75540221194846
+    },
+    {
+      "percentile": 0.13,
+      "duration": 47.95280753580418
+    },
+    {
+      "percentile": 0.14,
+      "duration": 48.17040746450302
+    },
+    {
+      "percentile": 0.15,
+      "duration": 48.353994772837375
+    },
+    {
+      "percentile": 0.16,
+      "duration": 48.549055833908604
+    },
+    {
+      "percentile": 0.17,
+      "duration": 48.70415086187426
+    },
+    {
+      "percentile": 0.18,
+      "duration": 48.864502843544685
+    },
+    {
+      "percentile": 0.19,
+      "duration": 49.01519238515052
+    },
+    {
+      "percentile": 0.2,
+      "duration": 49.136569544189385
+    },
+    {
+      "percentile": 0.21,
+      "duration": 49.31259134634029
+    },
+    {
+      "percentile": 0.22,
+      "duration": 49.431685979526115
+    },
+    {
+      "percentile": 0.23,
+      "duration": 49.58732072278278
+    },
+    {
+      "percentile": 0.24,
+      "duration": 49.698439101875344
+    },
+    {
+      "percentile": 0.25,
+      "duration": 49.80046400852574
+    },
+    {
+      "percentile": 0.26,
+      "duration": 49.91092504436134
+    },
+    {
+      "percentile": 0.27,
+      "duration": 50.01971832051539
+    },
+    {
+      "percentile": 0.28,
+      "duration": 50.16008563391052
+    },
+    {
+      "percentile": 0.29,
+      "duration": 50.30641382357724
+    },
+    {
+      "percentile": 0.3,
+      "duration": 50.4896367241545
+    },
+    {
+      "percentile": 0.31,
+      "duration": 50.62972225539982
+    },
+    {
+      "percentile": 0.32,
+      "duration": 50.736618630113064
+    },
+    {
+      "percentile": 0.33,
+      "duration": 50.84066644410979
+    },
+    {
+      "percentile": 0.34,
+      "duration": 50.94368319488178
+    },
+    {
+      "percentile": 0.35,
+      "duration": 51.0597026491089
+    },
+    {
+      "percentile": 0.36,
+      "duration": 51.1919932466432
+    },
+    {
+      "percentile": 0.37,
+      "duration": 51.31526575168249
+    },
+    {
+      "percentile": 0.38,
+      "duration": 51.42201677248017
+    },
+    {
+      "percentile": 0.39,
+      "duration": 51.51524749637302
+    },
+    {
+      "percentile": 0.4,
+      "duration": 51.610221092249404
+    },
+    {
+      "percentile": 0.41,
+      "duration": 51.70391642877493
+    },
+    {
+      "percentile": 0.42,
+      "duration": 51.81578608204806
+    },
+    {
+      "percentile": 0.43,
+      "duration": 51.91118954910003
+    },
+    {
+      "percentile": 0.44,
+      "duration": 52.01648345889129
+    },
+    {
+      "percentile": 0.45,
+      "duration": 52.13250644825144
+    },
+    {
+      "percentile": 0.46,
+      "duration": 52.21945325673831
+    },
+    {
+      "percentile": 0.47,
+      "duration": 52.32008463217037
+    },
+    {
+      "percentile": 0.48,
+      "duration": 52.42144235381284
+    },
+    {
+      "percentile": 0.49,
+      "duration": 52.52171764178001
+    },
+    {
+      "percentile": 0.5,
+      "duration": 52.60798621958188
+    },
+    {
+      "percentile": 0.51,
+      "duration": 52.727910793672315
+    },
+    {
+      "percentile": 0.52,
+      "duration": 52.844774760214214
+    },
+    {
+      "percentile": 0.53,
+      "duration": 52.948492373416954
+    },
+    {
+      "percentile": 0.54,
+      "duration": 53.04020666413118
+    },
+    {
+      "percentile": 0.55,
+      "duration": 53.134984392712845
+    },
+    {
+      "percentile": 0.56,
+      "duration": 53.236629306513635
+    },
+    {
+      "percentile": 0.57,
+      "duration": 53.33026379487125
+    },
+    {
+      "percentile": 0.58,
+      "duration": 53.41235706706502
+    },
+    {
+      "percentile": 0.59,
+      "duration": 53.50143432465488
+    },
+    {
+      "percentile": 0.6,
+      "duration": 53.59961320488602
+    },
+    {
+      "percentile": 0.61,
+      "duration": 53.69578364229739
+    },
+    {
+      "percentile": 0.62,
+      "duration": 53.80910586078629
+    },
+    {
+      "percentile": 0.63,
+      "duration": 53.917439906813755
+    },
+    {
+      "percentile": 0.64,
+      "duration": 54.021642160245456
+    },
+    {
+      "percentile": 0.65,
+      "duration": 54.12040979451022
+    },
+    {
+      "percentile": 0.66,
+      "duration": 54.223495344499774
+    },
+    {
+      "percentile": 0.67,
+      "duration": 54.3247251617317
+    },
+    {
+      "percentile": 0.68,
+      "duration": 54.421493008323594
+    },
+    {
+      "percentile": 0.69,
+      "duration": 54.5169811358125
+    },
+    {
+      "percentile": 0.7,
+      "duration": 54.62417090511184
+    },
+    {
+      "percentile": 0.71,
+      "duration": 54.763822808238665
+    },
+    {
+      "percentile": 0.72,
+      "duration": 54.869014385788844
+    },
+    {
+      "percentile": 0.73,
+      "duration": 54.99367283465462
+    },
+    {
+      "percentile": 0.74,
+      "duration": 55.111384638958135
+    },
+    {
+      "percentile": 0.75,
+      "duration": 55.24814938084491
+    },
+    {
+      "percentile": 0.76,
+      "duration": 55.36590171696343
+    },
+    {
+      "percentile": 0.77,
+      "duration": 55.53704907264956
+    },
+    {
+      "percentile": 0.78,
+      "duration": 55.68604203220057
+    },
+    {
+      "percentile": 0.79,
+      "duration": 55.802216940612
+    },
+    {
+      "percentile": 0.8,
+      "duration": 55.926475578286585
+    },
+    {
+      "percentile": 0.81,
+      "duration": 56.062137309390735
+    },
+    {
+      "percentile": 0.82,
+      "duration": 56.221946678182746
+    },
+    {
+      "percentile": 0.83,
+      "duration": 56.35497483158291
+    },
+    {
+      "percentile": 0.84,
+      "duration": 56.50466350032137
+    },
+    {
+      "percentile": 0.85,
+      "duration": 56.67110789396383
+    },
+    {
+      "percentile": 0.86,
+      "duration": 56.84705738445533
+    },
+    {
+      "percentile": 0.87,
+      "duration": 57.04229683918466
+    },
+    {
+      "percentile": 0.88,
+      "duration": 57.22772306516886
+    },
+    {
+      "percentile": 0.89,
+      "duration": 57.397845774403635
+    },
+    {
+      "percentile": 0.9,
+      "duration": 57.639184631659724
+    },
+    {
+      "percentile": 0.91,
+      "duration": 57.886139781355055
+    },
+    {
+      "percentile": 0.92,
+      "duration": 58.06310716163758
+    },
+    {
+      "percentile": 0.93,
+      "duration": 58.30579863152932
+    },
+    {
+      "percentile": 0.94,
+      "duration": 58.544501269457264
+    },
+    {
+      "percentile": 0.95,
+      "duration": 58.8870030962778
+    },
+    {
+      "percentile": 0.96,
+      "duration": 59.16965980810982
+    },
+    {
+      "percentile": 0.97,
+      "duration": 59.5615222718419
+    },
+    {
+      "percentile": 0.98,
+      "duration": 60.294139519383045
+    },
+    {
+      "percentile": 0.99,
+      "duration": 61.33822416789446
+    },
+    {
+      "percentile": 1.0,
+      "duration": 64.74215735015537
+    }
+  ],
+  "milestones": {
+    "P0": {
+      "name": "Project kickoff",
+      "percentiles": {
+        "0.5": 1.1221000699793273,
+        "0.8": 1.4532483121207311,
+        "0.9": 1.6092761174593069
+      }
+    },
+    "D2": {
+      "name": "Design approval",
+      "percentiles": {
+        "0.5": 15.087053687089906,
+        "0.8": 16.496464027432015,
+        "0.9": 17.724204031087275
+      }
+    },
+    "T2": {
+      "name": "User acceptance sign-off",
+      "percentiles": {
+        "0.5": 50.86883794613307,
+        "0.8": 54.15112139085692,
+        "0.9": 55.830577154948564
+      }
+    },
+    "L2": {
+      "name": "Go-live",
+      "percentiles": {
+        "0.5": 52.60798621958188,
+        "0.8": 55.926475578286585,
+        "0.9": 57.639184631659724
+      }
+    }
+  }
+}

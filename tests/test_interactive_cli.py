@@ -26,7 +26,7 @@ def make_reader(responses: list[str]):
 
 def test_prompt_confidence_levels_default():
     reader = make_reader([""])
-    assert _prompt_confidence_levels("Confidence", reader) == (0.5, 0.75, 0.9)
+    assert _prompt_confidence_levels("Confidence", reader) == (0.5, 0.8, 0.9)
 
 
 def test_prompt_confidence_levels_custom_sorted_unique():

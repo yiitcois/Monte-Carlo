@@ -32,6 +32,10 @@ def test_simulation_endpoint_returns_summary() -> None:
     assert payload["iterations"] == 200
     assert "statistics" in payload
     assert "critical_path" in payload
+    assert "histogram" in payload
+    assert "s_curve" in payload
+    assert len(payload["s_curve"]) == 101
+    assert "milestones" in payload
 
 
 def test_invalid_confidence_levels_return_error() -> None:

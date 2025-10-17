@@ -1,7 +1,11 @@
-task_id,name,optimistic,most_likely,pessimistic,predecessors
-A,Project kickoff,1,2,3,
-B,Requirements gathering,4,6,9,A
-C,Design phase,5,7,10,B
-D,Implementation,8,12,18,C
-E,Testing,5,7,11,D
-F,Deployment,2,3,5,E
+task_id,name,work_package,optimistic,most_likely,pessimistic,predecessors,milestone_flag
+P0,Project kickoff,Program Management,0.5,1,2,,TRUE
+P1,Requirements workshop,Program Management,3,4,6,P0,FALSE
+D1,Architecture draft,Design,4,5,8,P1,FALSE
+D2,Design approval,Design,1,2,3,D1,TRUE
+B1,Implementation sprint 1,Delivery,8,10,14,D2,FALSE
+B2,Implementation sprint 2,Delivery,8,11,15,B1,FALSE
+T1,System verification,Quality Assurance,3,4.5,6,B2,FALSE
+T2,User acceptance sign-off,Quality Assurance,1,2,3,T1,TRUE
+L1,Launch readiness,Launch,0.5,1,2,T2,FALSE
+L2,Go-live,Launch,0.25,0.5,1,L1,TRUE
