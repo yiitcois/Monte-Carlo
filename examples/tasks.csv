@@ -1,1 +1,7 @@
-# (buraya tasks.csv içeriği)
+task_id,name,optimistic,most_likely,pessimistic,predecessors
+A,Project kickoff,1,2,3,
+B,Requirements gathering,4,6,9,A
+C,Design phase,5,7,10,B
+D,Implementation,8,12,18,C
+E,Testing,5,7,11,D
+F,Deployment,2,3,5,E

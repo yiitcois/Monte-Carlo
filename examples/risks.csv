@@ -1,1 +1,3 @@
-# (buraya risks.csv içeriği)
+risk_id,description,probability,affected_tasks,impact_min,impact_mode,impact_max
+R1,Scope creep expands requirements,0.2,B;C,0.05,0.1,0.2
+R2,Key staff unavailable,0.15,D;E,0.1,0.15,0.25
