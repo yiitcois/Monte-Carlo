@@ -1,1 +1,6 @@
-# (buraya config.yaml içeriği)
+tasks: examples/tasks.csv
+risks: examples/risks.csv
+calendar: examples/calendars.json
+iterations: 5000
+confidence_levels: [0.5, 0.75, 0.9]
+random_seed: 12345
