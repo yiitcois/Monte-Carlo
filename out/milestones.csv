@@ -1,0 +1,13 @@
+milestone_id,name,percentile,duration
+P0,Project kickoff,0.5,1.1221000699793273
+P0,Project kickoff,0.8,1.4532483121207311
+P0,Project kickoff,0.9,1.6092761174593069
+D2,Design approval,0.5,15.087053687089906
+D2,Design approval,0.8,16.496464027432015
+D2,Design approval,0.9,17.724204031087275
+T2,User acceptance sign-off,0.5,50.86883794613307
+T2,User acceptance sign-off,0.8,54.15112139085692
+T2,User acceptance sign-off,0.9,55.830577154948564
+L2,Go-live,0.5,52.60798621958188
+L2,Go-live,0.8,55.926475578286585
+L2,Go-live,0.9,57.639184631659724

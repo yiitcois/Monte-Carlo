@@ -8,6 +8,27 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence
 
 
+_WEEKDAY_ALIASES = {
+    "mon": 0,
+    "monday": 0,
+    "tue": 1,
+    "tues": 1,
+    "tuesday": 1,
+    "wed": 2,
+    "wednesday": 2,
+    "thu": 3,
+    "thur": 3,
+    "thurs": 3,
+    "thursday": 3,
+    "fri": 4,
+    "friday": 4,
+    "sat": 5,
+    "saturday": 5,
+    "sun": 6,
+    "sunday": 6,
+}
+
+
 @dataclass(frozen=True)
 class Task:
     task_id: str
@@ -16,6 +37,8 @@ class Task:
     most_likely: float
     pessimistic: float
     predecessors: Sequence[str]
+    work_package: Optional[str] = None
+    milestone_flag: bool = False
 
 
 @dataclass(frozen=True)
@@ -59,6 +82,16 @@ def load_tasks(path_like: Path | str) -> List[Task]:
                 for predecessor in row.get("predecessors", "").split(";")
                 if predecessor.strip()
             )
+            work_package = (row.get("work_package") or "").strip() or None
+            milestone_raw = (row.get("milestone_flag") or "").strip().lower()
+            milestone_flag = milestone_raw in {
+                "1",
+                "true",
+                "yes",
+                "y",
+                "on",
+                "milestone",
+            }
             tasks.append(
                 Task(
                     task_id=row["task_id"].strip(),
@@ -67,6 +100,8 @@ def load_tasks(path_like: Path | str) -> List[Task]:
                     most_likely=float(row["most_likely"]),
                     pessimistic=float(row["pessimistic"]),
                     predecessors=predecessors,
+                    work_package=work_package,
+                    milestone_flag=milestone_flag,
                 )
             )
     return tasks
@@ -82,6 +117,8 @@ def load_risks(path_like: Optional[Path | str]) -> List[Risk]:
     risks: List[Risk] = []
     with path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
+        fieldnames = reader.fieldnames or []
+        rows = list(reader)
         required = {
             "risk_id",
             "description",
@@ -91,11 +128,23 @@ def load_risks(path_like: Optional[Path | str]) -> List[Risk]:
             "impact_mode",
             "impact_max",
         }
-        missing = [field for field in required if field not in reader.fieldnames]
+        missing = [field for field in required if field not in fieldnames]
         if missing:
+            alternative = {
+                "risk_id",
+                "risk_name",
+                "probability",
+                "impact_type",
+                "impact_target",
+                "impact_model",
+                "correlation_group",
+                "activation_logic",
+            }
+            if not rows and set(fieldnames).issubset(alternative):
+                return []
             raise DataError(f"Risk file is missing columns: {', '.join(missing)}")
 
-        for row in reader:
+        for row in rows:
             affected = tuple(
                 task.strip() for task in row["affected_tasks"].split(";") if task.strip()
             )
@@ -120,12 +169,27 @@ def load_calendar(path_like: Optional[Path | str]) -> Optional[Calendar]:
     if not path.exists():
         raise DataError(f"Calendar file not found: {path}")
 
-    data = json.loads(path.read_text(encoding="utf-8"))
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(raw, list):
+        if not raw:
+            raise DataError("Calendar file has invalid fields.")
+        data = raw[0]
+    else:
+        data = raw
+
     try:
-        working_days = tuple(int(day) for day in data.get("working_days", (0, 1, 2, 3, 4)))
-        daily_capacity = float(data.get("daily_capacity", 1.0))
-        holidays = tuple(data.get("holidays", ()))
-    except (TypeError, ValueError) as exc:
+        if "working_days" in data:
+            working_days = tuple(int(day) for day in data.get("working_days", (0, 1, 2, 3, 4)))
+            daily_capacity = float(data.get("daily_capacity", 1.0))
+        else:
+            workdays_raw = data.get("workdays", ["Mon", "Tue", "Wed", "Thu", "Fri"])
+            working_days = tuple(
+                _WEEKDAY_ALIASES[str(day).strip().lower()] for day in workdays_raw
+            )
+            hours = float(data.get("work_hours_per_day", 8))
+            daily_capacity = hours / 8 if hours > 0 else 1.0
+        holidays = tuple(str(value) for value in data.get("holidays", ()))
+    except (TypeError, ValueError, KeyError) as exc:
         raise DataError("Calendar file has invalid fields.") from exc
 
     return Calendar(working_days=working_days, daily_capacity=daily_capacity, holidays=holidays)

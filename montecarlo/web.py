@@ -20,6 +20,8 @@ class TaskPayload(BaseModel):
     most_likely: float = Field(..., ge=0.0)
     pessimistic: float = Field(..., ge=0.0)
     predecessors: List[str] = Field(default_factory=list)
+    work_package: Optional[str] = None
+    milestone_flag: bool = False
 
     @validator("predecessors", pre=True)
     def _clean_predecessors(cls, value: Sequence[str] | str) -> List[str]:
@@ -27,6 +29,13 @@ class TaskPayload(BaseModel):
             parts = [part.strip() for part in value.split(",")]
             return [part for part in parts if part]
         return [item.strip() for item in value if item]
+
+    @validator("work_package", pre=True)
+    def _clean_work_package(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        cleaned = str(value).strip()
+        return cleaned or None
 
     @validator("most_likely")
     def _check_triangle(cls, most_likely: float, values: Dict[str, Any]) -> float:
@@ -44,6 +53,8 @@ class TaskPayload(BaseModel):
             most_likely=self.most_likely,
             pessimistic=self.pessimistic,
             predecessors=tuple(self.predecessors),
+            work_package=self.work_package,
+            milestone_flag=self.milestone_flag,
         )
 
 
@@ -98,7 +109,7 @@ class SimulationRequest(BaseModel):
     tasks: List[TaskPayload] = Field(..., min_items=1)
     risks: List[RiskPayload] = Field(default_factory=list)
     iterations: int = Field(5000, ge=1)
-    confidence_levels: List[float] = Field(default_factory=lambda: [0.5, 0.75, 0.9])
+    confidence_levels: List[float] = Field(default_factory=lambda: [0.5, 0.8, 0.9])
     random_seed: Optional[int] = None
     calendar: Optional[CalendarPayload] = None
 
@@ -246,6 +257,98 @@ _INDEX_HTML = """
       font-weight: 600;
       margin-bottom: 1rem;
     }
+    .plan-view {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .plan-grid,
+    .plan-gantt {
+      display: grid;
+      gap: 1rem;
+    }
+    .plan-grid-section {
+      background: #f8fafc;
+      border: 1px solid #d9e2ec;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+    }
+    .plan-grid-section h3 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .plan-grid-section table {
+      margin-bottom: 0;
+    }
+    .plan-grid-section td {
+      border: none;
+      border-bottom: 1px solid #e4ebf5;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .plan-grid-section tr:last-child td {
+      border-bottom: none;
+    }
+    .gantt-group {
+      background: #f1f5f9;
+      border: 1px solid #d9e2ec;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+    }
+    .gantt-group-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .gantt-row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.45rem;
+    }
+    .gantt-label {
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .gantt-bar {
+      position: relative;
+      background: linear-gradient(90deg, #60a5fa, #3b82f6);
+      height: 16px;
+      border-radius: 999px;
+      min-width: 6px;
+    }
+    .gantt-bar::after {
+      content: attr(data-duration) " d";
+      position: absolute;
+      right: -3.4rem;
+      top: -0.35rem;
+      font-size: 0.7rem;
+      color: #475569;
+    }
+    .gantt-bar--milestone {
+      background: transparent;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      color: #f97316;
+      min-width: unset;
+    }
+    .gantt-bar--milestone::after {
+      content: "";
+    }
+    .milestone-icon {
+      color: #f97316;
+      font-size: 0.9rem;
+    }
+    .placeholder {
+      color: #64748b;
+      font-style: italic;
+    }
     @media (max-width: 720px) {
       th, td {
         font-size: 0.85rem;
@@ -272,15 +375,30 @@ _INDEX_HTML = """
           <tr>
             <th>ID</th>
             <th>Name</th>
+            <th>Work package</th>
             <th>Optimistic</th>
             <th>Most likely</th>
             <th>Pessimistic</th>
             <th>Predecessors</th>
+            <th>Milestone</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="tasks-body"></tbody>
       </table>
+    </section>
+
+    <section>
+      <h2>Plan preview</h2>
+      <p>Review grouped activities and a quick Gantt projection based on the durations above. Use work packages to segment the view and mark milestones to highlight them in both grids.</p>
+      <div class="plan-view">
+        <div class="plan-grid" id="plan-grid">
+          <p class="placeholder">Add tasks to populate the grid.</p>
+        </div>
+        <div class="plan-gantt" id="plan-gantt">
+          <p class="placeholder">Add tasks to visualize the Gantt chart.</p>
+        </div>
+      </div>
     </section>
 
     <section>
@@ -313,7 +431,7 @@ _INDEX_HTML = """
           <input id="iterations" type="number" min="1" value="5000" />
         </label>
         <label>Confidence levels (comma separated)
-          <input id="confidence-levels" type="text" value="0.5, 0.75, 0.9" />
+          <input id="confidence-levels" type="text" value="0.5, 0.8, 0.9" />
         </label>
         <label>Random seed (optional)
           <input id="random-seed" type="number" />
@@ -344,10 +462,12 @@ _INDEX_HTML = """
     <tr>
       <td><input type="text" name="task_id" required /></td>
       <td><input type="text" name="name" required /></td>
+      <td><input type="text" name="work_package" placeholder="e.g. WP-1" /></td>
       <td><input type="number" name="optimistic" step="0.1" min="0" required /></td>
       <td><input type="number" name="most_likely" step="0.1" min="0" required /></td>
       <td><input type="number" name="pessimistic" step="0.1" min="0" required /></td>
       <td><input type="text" name="predecessors" placeholder="e.g. TASK-1, TASK-2" /></td>
+      <td style="text-align:center;"><input type="checkbox" name="milestone_flag" aria-label="Milestone" /></td>
       <td style="text-align:center;"><button type="button" class="secondary remove-row">Remove</button></td>
     </tr>
   </template>
@@ -366,6 +486,233 @@ _INDEX_HTML = """
   <script>
     const tasksBody = document.getElementById('tasks-body');
     const risksBody = document.getElementById('risks-body');
+    const planGrid = document.getElementById('plan-grid');
+    const planGantt = document.getElementById('plan-gantt');
+
+    function parseList(value) {
+      return (value || '')
+        .split(/[,;]/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function computeSchedule(tasks) {
+      const map = new Map(tasks.map((task) => [task.task_id, task]));
+      const inDegree = new Map();
+      const dependents = new Map();
+
+      tasks.forEach((task) => {
+        inDegree.set(task.task_id, inDegree.get(task.task_id) || 0);
+      });
+
+      tasks.forEach((task) => {
+        (task.predecessors || []).forEach((pred) => {
+          if (!map.has(pred)) {
+            return;
+          }
+          inDegree.set(task.task_id, (inDegree.get(task.task_id) || 0) + 1);
+          if (!dependents.has(pred)) {
+            dependents.set(pred, []);
+          }
+          dependents.get(pred).push(task.task_id);
+        });
+      });
+
+      const queue = Array.from(inDegree.entries())
+        .filter(([, degree]) => degree === 0)
+        .map(([taskId]) => taskId)
+        .sort();
+
+      const order = [];
+      while (queue.length) {
+        const current = queue.shift();
+        order.push(current);
+        const next = dependents.get(current) || [];
+        next.forEach((child) => {
+          const updated = (inDegree.get(child) || 0) - 1;
+          inDegree.set(child, updated);
+          if (updated === 0) {
+            queue.push(child);
+            queue.sort();
+          }
+        });
+      }
+
+      if (order.length !== tasks.length) {
+        tasks.forEach((task) => {
+          if (!order.includes(task.task_id)) {
+            order.push(task.task_id);
+          }
+        });
+      }
+
+      const startTimes = new Map();
+      const finishTimes = new Map();
+      order.forEach((taskId) => {
+        const task = map.get(taskId);
+        if (!task) {
+          return;
+        }
+        let start = 0;
+        (task.predecessors || []).forEach((pred) => {
+          if (!finishTimes.has(pred)) {
+            return;
+          }
+          const finish = finishTimes.get(pred);
+          if (finish > start) {
+            start = finish;
+          }
+        });
+        const duration = Number(task.most_likely) || 0;
+        startTimes.set(taskId, start);
+        finishTimes.set(taskId, start + duration);
+      });
+
+      return { order, startTimes, finishTimes };
+    }
+
+    function readTasksForPreview() {
+      const rows = tasksBody.querySelectorAll('tr');
+      const tasks = [];
+      rows.forEach((row) => {
+        const getInput = (name) => row.querySelector(`[name="${name}"]`);
+        const idInput = getInput('task_id');
+        if (!idInput) {
+          return;
+        }
+        const taskId = idInput.value.trim();
+        if (!taskId) {
+          return;
+        }
+        const optimistic = Number(getInput('optimistic').value);
+        const mostLikely = Number(getInput('most_likely').value);
+        const pessimistic = Number(getInput('pessimistic').value);
+        if ([optimistic, mostLikely, pessimistic].some((value) => Number.isNaN(value))) {
+          return;
+        }
+        tasks.push({
+          task_id: taskId,
+          name: (getInput('name').value || '').trim() || taskId,
+          work_package: (getInput('work_package').value || '').trim(),
+          optimistic,
+          most_likely: mostLikely,
+          pessimistic,
+          predecessors: parseList(getInput('predecessors').value),
+          milestone_flag: Boolean(getInput('milestone_flag')?.checked),
+        });
+      });
+      return tasks;
+    }
+
+    function renderPlanPreview() {
+      if (!planGrid || !planGantt) {
+        return;
+      }
+      const previewTasks = readTasksForPreview();
+      if (!previewTasks.length) {
+        planGrid.innerHTML = '<p class="placeholder">Add tasks to populate the grid.</p>';
+        planGantt.innerHTML = '<p class="placeholder">Add tasks to visualize the Gantt chart.</p>';
+        return;
+      }
+
+      const groups = new Map();
+      previewTasks.forEach((task) => {
+        const key = task.work_package || 'Ungrouped';
+        if (!groups.has(key)) {
+          groups.set(key, []);
+        }
+        groups.get(key).push(task);
+      });
+
+      const { startTimes, finishTimes } = computeSchedule(previewTasks);
+      const finishValues = Array.from(finishTimes.values());
+      const totalDuration = finishValues.length ? Math.max(...finishValues) : 0;
+      const scale = totalDuration > 0 ? totalDuration : 1;
+
+      planGrid.innerHTML = '';
+      planGantt.innerHTML = '';
+
+      const sortedGroups = Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+      sortedGroups.forEach(([groupName, tasks]) => {
+        const sortedTasks = [...tasks].sort(
+          (a, b) => (startTimes.get(a.task_id) || 0) - (startTimes.get(b.task_id) || 0),
+        );
+
+        const gridSection = document.createElement('div');
+        gridSection.className = 'plan-grid-section';
+        const gridTitle = document.createElement('h3');
+        gridTitle.textContent = groupName;
+        gridSection.appendChild(gridTitle);
+
+        const gridTable = document.createElement('table');
+        const gridBody = document.createElement('tbody');
+        sortedTasks.forEach((task) => {
+          const row = document.createElement('tr');
+          const nameCell = document.createElement('td');
+          nameCell.innerHTML = `${task.name}${task.milestone_flag ? ' <span class="milestone-icon" title="Milestone">◆</span>' : ''}`;
+          row.appendChild(nameCell);
+          const durationCell = document.createElement('td');
+          durationCell.style.textAlign = 'right';
+          durationCell.textContent = `${Number(task.most_likely).toFixed(1)} d`;
+          row.appendChild(durationCell);
+          gridBody.appendChild(row);
+        });
+        if (!gridBody.children.length) {
+          const emptyRow = document.createElement('tr');
+          const cell = document.createElement('td');
+          cell.colSpan = 2;
+          cell.className = 'placeholder';
+          cell.textContent = 'Add durations to include this work package.';
+          emptyRow.appendChild(cell);
+          gridBody.appendChild(emptyRow);
+        }
+        gridTable.appendChild(gridBody);
+        gridSection.appendChild(gridTable);
+        planGrid.appendChild(gridSection);
+
+        const ganttGroup = document.createElement('div');
+        ganttGroup.className = 'gantt-group';
+        const ganttTitle = document.createElement('div');
+        ganttTitle.className = 'gantt-group-title';
+        ganttTitle.textContent = groupName;
+        ganttGroup.appendChild(ganttTitle);
+
+        sortedTasks.forEach((task) => {
+          const row = document.createElement('div');
+          row.className = 'gantt-row';
+
+          const label = document.createElement('span');
+          label.className = 'gantt-label';
+          label.textContent = task.name;
+          if (task.milestone_flag) {
+            const icon = document.createElement('span');
+            icon.className = 'milestone-icon';
+            icon.title = 'Milestone';
+            icon.textContent = '◆';
+            label.appendChild(icon);
+          }
+          row.appendChild(label);
+
+          const bar = document.createElement('div');
+          const start = startTimes.get(task.task_id) || 0;
+          const finish = finishTimes.get(task.task_id) || start;
+          const duration = Math.max(finish - start, 0);
+          bar.style.marginLeft = `${(start / scale) * 100}%`;
+          if (duration <= 0) {
+            bar.className = 'gantt-bar gantt-bar--milestone';
+            bar.innerHTML = '<span class="milestone-icon" title="Milestone">◆</span>';
+          } else {
+            bar.className = 'gantt-bar';
+            bar.style.width = `${(duration / scale) * 100}%`;
+            bar.dataset.duration = duration.toFixed(1);
+          }
+          row.appendChild(bar);
+          ganttGroup.appendChild(row);
+        });
+
+        planGantt.appendChild(ganttGroup);
+      });
+    }
 
     function addRow(body, templateId, initial = []) {
       const template = document.getElementById(templateId);
@@ -373,45 +720,63 @@ _INDEX_HTML = """
       const inputs = clone.querySelectorAll('input');
       inputs.forEach((input, index) => {
         if (initial[index] !== undefined) {
-          input.value = initial[index];
+          if (input.type === 'checkbox') {
+            input.checked = Boolean(initial[index]);
+          } else {
+            input.value = initial[index];
+          }
+        }
+        input.addEventListener('input', renderPlanPreview);
+        if (input.type === 'checkbox') {
+          input.addEventListener('change', renderPlanPreview);
         }
       });
-      clone.querySelector('.remove-row').addEventListener('click', () => {
-        body.removeChild(clone);
-      });
+      const removeButton = clone.querySelector('.remove-row');
+      if (removeButton) {
+        removeButton.addEventListener('click', () => {
+          body.removeChild(clone);
+          renderPlanPreview();
+        });
+      }
       body.appendChild(clone);
+      renderPlanPreview();
     }
 
     document.getElementById('add-task').addEventListener('click', () => addRow(tasksBody, 'task-row'));
     document.getElementById('add-risk').addEventListener('click', () => addRow(risksBody, 'risk-row'));
 
     // Seed with two example tasks to help first-time users.
-    addRow(tasksBody, 'task-row', ['DESIGN', 'Design', 3, 5, 8, '']);
-    addRow(tasksBody, 'task-row', ['BUILD', 'Build prototype', 5, 7, 12, 'DESIGN']);
-
-    const parseList = (value) => value.split(',').map(item => item.trim()).filter(Boolean);
+    addRow(tasksBody, 'task-row', ['DESIGN', 'Design', 'Concept', 3, 5, 8, '', false]);
+    addRow(tasksBody, 'task-row', ['BUILD', 'Build prototype', 'Delivery', 5, 7, 12, 'DESIGN', false]);
 
     function collectTasks() {
       const rows = tasksBody.querySelectorAll('tr');
       const tasks = [];
       rows.forEach((row) => {
-        const get = (name) => row.querySelector(`[name="${name}"]`).value.trim();
-        if (!get('task_id')) {
+        const getInput = (name) => row.querySelector(`[name="${name}"]`);
+        const idInput = getInput('task_id');
+        if (!idInput) {
           return;
         }
-        const optimistic = Number(get('optimistic'));
-        const mostLikely = Number(get('most_likely'));
-        const pessimistic = Number(get('pessimistic'));
+        const taskId = idInput.value.trim();
+        if (!taskId) {
+          return;
+        }
+        const optimistic = Number(getInput('optimistic').value);
+        const mostLikely = Number(getInput('most_likely').value);
+        const pessimistic = Number(getInput('pessimistic').value);
         if ([optimistic, mostLikely, pessimistic].some((value) => Number.isNaN(value))) {
           throw new Error('All duration fields must be valid numbers.');
         }
         tasks.push({
-          task_id: get('task_id'),
-          name: get('name') || get('task_id'),
+          task_id: taskId,
+          name: (getInput('name').value || '').trim() || taskId,
+          work_package: (getInput('work_package').value || '').trim(),
           optimistic,
           most_likely: mostLikely,
           pessimistic,
-          predecessors: parseList(get('predecessors')),
+          predecessors: parseList(getInput('predecessors').value),
+          milestone_flag: Boolean(getInput('milestone_flag')?.checked),
         });
       });
       return tasks;
@@ -421,22 +786,27 @@ _INDEX_HTML = """
       const rows = risksBody.querySelectorAll('tr');
       const risks = [];
       rows.forEach((row) => {
-        const get = (name) => row.querySelector(`[name="${name}"]`).value.trim();
-        if (!get('risk_id')) {
+        const get = (name) => row.querySelector(`[name="${name}"]`);
+        const idInput = get('risk_id');
+        if (!idInput) {
           return;
         }
-        const probability = Number(get('probability'));
-        const impactMin = Number(get('impact_min'));
-        const impactMode = Number(get('impact_mode'));
-        const impactMax = Number(get('impact_max'));
+        const riskId = idInput.value.trim();
+        if (!riskId) {
+          return;
+        }
+        const probability = Number(get('probability').value);
+        const impactMin = Number(get('impact_min').value);
+        const impactMode = Number(get('impact_mode').value);
+        const impactMax = Number(get('impact_max').value);
         if ([probability, impactMin, impactMode, impactMax].some((value) => Number.isNaN(value))) {
           throw new Error('All risk fields must be valid numbers.');
         }
         risks.push({
-          risk_id: get('risk_id'),
-          description: get('description'),
+          risk_id: riskId,
+          description: (get('description').value || '').trim(),
           probability,
-          affected_tasks: parseList(get('affected_tasks')),
+          affected_tasks: parseList(get('affected_tasks').value),
           impact_min: impactMin,
           impact_mode: impactMode,
           impact_max: impactMax,

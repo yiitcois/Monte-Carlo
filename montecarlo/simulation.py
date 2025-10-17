@@ -71,19 +71,31 @@ class MonteCarloSimulator:
     def run(self) -> Dict[str, object]:
         durations: List[float] = []
         critical_paths: Counter[tuple[str, ...]] = Counter()
+        milestone_ids = {
+            task.task_id for task in self.tasks if getattr(task, "milestone_flag", False)
+        }
+        milestone_samples: Dict[str, List[float]] = {
+            task_id: [] for task_id in milestone_ids
+        }
 
         for _ in range(self.iterations):
             sampled = self._sample_durations()
-            project_duration, critical_path = self._calculate_schedule(sampled)
+            project_duration, critical_path, finish_times = self._calculate_schedule(sampled)
             durations.append(project_duration)
             critical_paths[tuple(critical_path)] += 1
+            if milestone_ids:
+                for milestone_id in milestone_ids:
+                    finish = finish_times.get(milestone_id)
+                    if finish is not None:
+                        milestone_samples[milestone_id].append(finish)
 
+        percentile_levels = sorted({*self.confidence_levels, 0.5, 0.8})
         stats = {
             "mean": mean(durations),
             "median": median(durations),
             "stdev": _safe_stdev(durations),
             "percentiles": {
-                f"{level}": percentile(durations, level) for level in self.confidence_levels
+                f"{level}": percentile(durations, level) for level in percentile_levels
             },
         }
 
@@ -91,10 +103,28 @@ class MonteCarloSimulator:
         if critical_paths:
             critical_path = list(max(critical_paths.items(), key=lambda item: item[1])[0])
 
+        milestones: Dict[str, Dict[str, object]] = {}
+        if milestone_samples:
+            for task in self.tasks:
+                if task.task_id not in milestone_samples:
+                    continue
+                samples = milestone_samples[task.task_id]
+                if not samples:
+                    continue
+                milestones[task.task_id] = {
+                    "name": task.name,
+                    "percentiles": {
+                        f"{level}": percentile(samples, level) for level in percentile_levels
+                    },
+                }
+
         return {
             "iterations": self.iterations,
             "statistics": stats,
             "critical_path": critical_path,
+            "histogram": _build_histogram(durations),
+            "s_curve": _build_s_curve(durations),
+            "milestones": milestones,
         }
 
     def _sample_durations(self) -> Mapping[str, float]:
@@ -116,7 +146,9 @@ class MonteCarloSimulator:
                         durations[task_id] *= max(0.0, 1.0 + factor)
         return durations
 
-    def _calculate_schedule(self, durations: Mapping[str, float]) -> tuple[float, List[str]]:
+    def _calculate_schedule(
+        self, durations: Mapping[str, float]
+    ) -> tuple[float, List[str], Dict[str, float]]:
         start_times: Dict[str, float] = {}
         finish_times: Dict[str, float] = {}
         predecessors: Dict[str, Optional[str]] = {}
@@ -145,7 +177,7 @@ class MonteCarloSimulator:
             current = predecessors[current]
         critical_path.reverse()
 
-        return finish_times[last_task], critical_path
+        return finish_times[last_task], critical_path, finish_times
 
 
 def triangular(rng: random.Random, low: float, mode: float, high: float) -> float:
@@ -208,6 +240,55 @@ def percentile(values: Sequence[float], q: float) -> float:
     lower_value = sorted_values[int(lower)]
     upper_value = sorted_values[int(upper)]
     return lower_value + (upper_value - lower_value) * (index - lower)
+
+
+def _build_histogram(values: Sequence[float], bins: int = 20) -> List[Dict[str, float]]:
+    if not values:
+        return []
+    minimum = min(values)
+    maximum = max(values)
+    if math.isclose(minimum, maximum):
+        return [
+            {
+                "bin_start": minimum,
+                "bin_end": maximum,
+                "count": len(values),
+                "probability": 1.0,
+            }
+        ]
+    bin_count = max(1, bins)
+    width = (maximum - minimum) / bin_count
+    if math.isclose(width, 0):
+        width = 1.0
+    edges = [minimum + i * width for i in range(bin_count + 1)]
+    counts = [0 for _ in range(bin_count)]
+    for value in values:
+        index = int((value - minimum) / width)
+        if index >= bin_count:
+            index = bin_count - 1
+        counts[index] += 1
+    total = len(values)
+    histogram: List[Dict[str, float]] = []
+    for idx in range(bin_count):
+        histogram.append(
+            {
+                "bin_start": edges[idx],
+                "bin_end": edges[idx + 1],
+                "count": counts[idx],
+                "probability": counts[idx] / total,
+            }
+        )
+    return histogram
+
+
+def _build_s_curve(values: Sequence[float]) -> List[Dict[str, float]]:
+    if not values:
+        return []
+    points: List[Dict[str, float]] = []
+    for percent in range(0, 101):
+        q = percent / 100
+        points.append({"percentile": q, "duration": percentile(values, q)})
+    return points
 
 
 def _safe_stdev(values: Iterable[float]) -> float:
