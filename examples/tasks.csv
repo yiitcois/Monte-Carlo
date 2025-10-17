@@ -1,8 +1,1 @@
-task_id,name,optimistic,most_likely,pessimistic,predecessors
-PLAN,Project planning,3,5,7,
-DESIGN,System design,5,8,12,PLAN
-BUILD,Implementation,12,16,24,DESIGN
-TEST,Quality assurance,6,9,14,BUILD
-LAUNCH,Deployment,2,3,6,TEST
-TRAIN,Training sessions,3,4,7,TEST
-CLOSE,Project closure,1,2,4,LAUNCH;TRAIN
+# (buraya tasks.csv içeriği)
