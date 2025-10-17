@@ -29,6 +29,15 @@ This project implements a Monte Carlo simulation engine that analyses project sc
    ```
    The wizard will guide you through entering task durations, optional risk events, and the simulation settings.
 
+
+## Web interface
+You can also experiment with the simulator through a small web UI built with FastAPI. After installing the dependencies run:
+
+```bash
+uvicorn montecarlo.web:app --reload
+```
+
+Open <http://127.0.0.1:8000> in your browser. The page lets you add tasks, optional risks, and tweak simulation settings without leaving the browser. Results are rendered directly on the page once the simulation finishes.
 ## PowerShell usage
 The CLI can be executed from PowerShell without any changes. Activate your virtual environment (if you created one) and invoke the module just like in bash:
 ```powershell
