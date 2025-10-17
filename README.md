@@ -22,6 +22,13 @@ This project implements a Monte Carlo simulation engine that analyses project sc
    python -m montecarlo run --config examples/config.yaml
    ```
 
+   You can also launch an interactive prompt and enter the tasks manually:
+
+   ```bash
+   python -m montecarlo interactive
+   ```
+   The wizard will guide you through entering task durations, optional risk events, and the simulation settings.
+
 ## PowerShell usage
 The CLI can be executed from PowerShell without any changes. Activate your virtual environment (if you created one) and invoke the module just like in bash:
 ```powershell
